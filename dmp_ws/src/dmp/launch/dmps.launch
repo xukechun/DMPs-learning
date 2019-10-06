@@ -1,0 +1,4 @@
+<launch>
+	<node pkg="rviz" type="rviz" name="rviz" respawn="false" output="screen"/>
+	<node name="dmps" pkg="dmp" type="dmps" respawn="false" output="screen"/>
+</launch>
