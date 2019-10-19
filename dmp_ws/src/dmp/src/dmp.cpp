@@ -47,6 +47,7 @@ void learnFromDemo(const DMPTraj &demo,
 	}
 
 	int dims = demo.points[0].positions.size();
+	//cout << "dims in learnFromDemo is: " << dims << endl;
 	double tau = demo.times[n_pts-1];//总的执行时间
 
 	double *x_demo = new double[n_pts];
@@ -100,6 +101,7 @@ void learnFromDemo(const DMPTraj &demo,
         }
 		dmp_list.push_back(*curr_dmp);
 	}
+	cout<<"the size of dmp_list is: "<< dmp_list.size()<<endl;
 
 	delete[] x_demo;
 	delete[] v_demo;
@@ -139,15 +141,18 @@ void generatePlan(const vector<DMPData> &dmp_list,
 				  DMPTraj &plan,
 				  uint8_t &at_goal)
 {
+	cout << "tau in generatePlan" << tau << endl;
+	//cout << "goal in generatePlan(" << goal[0] <<"," << goal[1] <<","<<goal[2]<<")"<<endl;
 	plan.points.clear();
 	plan.times.clear();
 	at_goal = false;
 
 	int dims = dmp_list.size();
+	//cout<<"dims in generatePlan: "<<dims<<endl;
 	int n_pts = 0;
 	double dt = total_dt / integrate_iter;
+	
 	//时间同步
-
 	vector<double> *x_vecs, *x_dot_vecs;
 	vector<double> t_vec;
 	x_vecs = new vector<double>[dims];
@@ -203,16 +208,21 @@ void generatePlan(const vector<DMPData> &dmp_list,
 				//Update state variables
 				v += v_dot * dt;
 				x += x_dot * dt;
+				//cout << "f_eval: " << f_eval << endl;
+				//cout << "v_dot" << i << ": " << v_dot << endl;
 			}
 
 			//Add current state to the plan
 			x_vecs[i].push_back(x);
 			x_dot_vecs[i].push_back(v/tau);
+			//cout << "in dim" << i<< ": "<<x_vecs[i]<<endl;
 		}
+
 		t += total_dt;
 		t_vec.push_back(t);
 		n_pts++;
 
+		//cout << "t+t_0: " <<t+t_0 << endl;
 		//If plan is at least minimum length, check to see if we are close enough to goal
 		if((t+t_0) >= tau){
 			at_goal = true;
@@ -223,24 +233,28 @@ void generatePlan(const vector<DMPData> &dmp_list,
 				}
 			}
 		}
+		//cout << "at_goal in generatePlan: " << at_goal << endl;
 	}
-	ROS_INFO("n_pts: %d",n_pts);
+	//cout<<"n_pts in generatePlan is " <<n_pts<<endl;
 
 	//Create a plan from the generated trajectories
 
-	plan.points.resize(n_pts+1);
-	for(int j=0; j<=n_pts; j++){
+	plan.points.resize(n_pts);
+	for(int j=0; j<n_pts; j++){
+		//cout<<"in resize in generatePlan" << j << endl;
 		plan.points[j].positions.resize(dims);
 		plan.points[j].velocities.resize(dims);
 	}
 	for(int i=0; i<dims; i++){
-		for(int j=0; j<=n_pts; j++){
+		for(int j=0; j<n_pts; j++){
 			plan.points[j].positions[i] = x_vecs[i][j];
 			plan.points[j].velocities[i] = x_dot_vecs[i][j];
+			cout << "the point in dmp.cpp of ("<< j << ","<< i <<") is"<< plan.points[j].positions[i] <<endl;
 		}
 	}
 	plan.times = t_vec;
-	ROS_INFO("planning time: %lf",plan.times[2]);
+	//ROS_INFO("planning time number: %d",plan.times.size());
+	//cout << "the first point in dmp.cpp:" << plan.points[0] <<endl;
 
 	//Clean up
 	for(int i=0; i<dims; i++){
