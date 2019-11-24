@@ -18,6 +18,7 @@ dmp::LearnDMPFromDemo mydemo;
 dmp::GetDMPPlan myplan;
 dmp::SetActiveDMP myactive_dmp;
 
+//add a parameter to learn several trajectories at the same time
 void Set_mydemo()
 {
 	ROS_INFO("mydemo is begin.");
